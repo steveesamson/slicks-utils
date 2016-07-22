@@ -1,0 +1,25 @@
+{
+  "name": "slicks-utils",
+  "version": "1.0.0",
+  "description": "Module for my commonly used utility functions; you might find it useful too.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha ./tests/util_tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/steveesamson/slicks-utils.git"
+  },
+  "keywords": [
+    "slicks",
+    "slicks-utils",
+    "utils",
+    "functions"
+  ],
+  "author": "Steve Samson <stevee.samson@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/steveesamson/slicks-utils/issues"
+  },
+  "homepage": "https://github.com/steveesamson/slicks-utils#readme"
+}
