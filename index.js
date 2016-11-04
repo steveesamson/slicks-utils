@@ -1,4 +1,5 @@
-module.exports = (function () {
+module.exports = function () {
+
     if (!Array.prototype.indexOf) {
         Array.prototype.indexOf = function (obj, start) {
             for (var i = (start || 0), j = this.length; i < j; i++) {
@@ -23,13 +24,27 @@ module.exports = (function () {
     var happy = function (j) {
             return (j !== null && j.error === undefined);
         },
-        xtend = function (o, options) {
+        inherits = function (base) {
+            function F() {
+            }
 
-            for (var k in options) {
-                if (options.hasOwnProperty(k)) {
-                    o[k] = options[k];
+            F.prototype = base;
+            var f = new F;
+            f.parent = F.prototype;
+            return f;
+        },
+        xtend = function () {
+
+            var o = arguments[0];
+
+            for (var i = 1; i < arguments.length; ++i) {
+                var options = arguments[i];
+                for (var k in options) {
+                    if (options.hasOwnProperty(k)) {
+                        o[k] = options[k];
+                    }
+
                 }
-
             }
         },
         isFunction = function (cb) {
@@ -72,6 +87,70 @@ module.exports = (function () {
 // Convert it to base 36 (numbers + letters), and grab the first 9 characters
 // after the decimal.
             return '_' + Math.random().toString(36).substr(2, 9);
+        },
+        ajax = function (url, method, data, cb) {
+
+            $.ajax({
+                type: method,
+                beforeSend: function (xhr) {
+                    $('.data-connecting').show();
+                    Session.isAuthenticated() && xhr.setRequestHeader('x-csrf-token', Session.user().token || '');
+                },
+                url: url,
+                data: data,
+                success: function (res) {
+                    $('.data-connecting').hide();
+                    cb(res);
+                },
+                error: function () {
+                    $('.data-connecting').hide();
+                },
+                dataType: 'json'
+            });
+        },
+        sync_bee = function (method, model, cb) {
+
+
+            var url = null, data = {};
+            switch (method) {
+                case 'post':
+                    url = model.url;
+                    data = model.toObject();
+                    break;
+                case 'put':
+                    url = model.url + '/' + model.get('id');
+                    data = model.dirts();
+                    var last_updated = model.get('last_updated');
+                    if (last_updated) {
+                        data['last_updated'] = last_updated;
+                    }
+                    break;
+                case 'delete':
+                    url = model.url + '/' + model.get('id');
+                    var last_updated = model.get('last_updated');
+                    if (last_updated) {
+                        data['last_updated'] = last_updated;
+                    }
+                    break;
+                case 'get':
+                    url = model.url;
+                    data = model.query || {};
+                    break;
+                default:
+                    console.log('Unknown method: ' + method);
+                    return;
+            }
+
+            this.sync(url, method, data, function (mdl) {
+                if (happy(mdl)) {
+
+                    cb && cb(false, mdl);
+                } else {
+                    var message = mdl.text || mdl.error;
+                    message = message.replace('ER_SIGNAL_EXCEPTION:', '');
+                    cb && cb(message);
+                }
+            });
         },
         attachEvent = function (evt, handler, context) {
             handler['context'] = context;
@@ -177,32 +256,22 @@ module.exports = (function () {
 
             return delimitNumbers(s);
         },
-        map = function (array, cb) {
-            var accepted = [];
-            each(array, function (i, v) {
-
-                var valid = cb && cb.call(this, i, v);
-                if (valid) {
-                    accepted.push(valid);
-                }
-            });
-            return accepted;
-        },
-        isString = function (o) {
-            return typeof o === 'string';
-        },
         months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
         days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 
     return {
+        Crypt: require('./libs/tiny-tea'),
         happy: happy,
         xtend: xtend,
+        inherits:inherits,
         isFunction: isFunction,
         makeName: makeName,
         isArray: isArray,
         each: each,
         uid: uid,
+        ajax: ajax,
+        sync_bee: sync_bee,
         attachEvent: attachEvent,
         detachEvent: detachEvent,
         baseName: baseName,
@@ -211,12 +280,9 @@ module.exports = (function () {
         formatFields: formatFields,
         contains: contains,
         format: format,
-        each: each,
-        isString: isString,
-        map: map,
         Months: months,
         Days: days
     };
 
-}());
+};
 
