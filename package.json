@@ -1,6 +1,6 @@
 {
   "name": "slicks-utils",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Module for my commonly used utility functions; you might find it useful too.",
   "main": "index.js",
   "scripts": {
